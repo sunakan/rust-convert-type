@@ -1,0 +1,35 @@
+---
+
+version: '3.8'
+
+x-template: &db-template
+  image: postgres:13-buster
+  ports:
+    - 5432:5432
+  environment:
+    POSTGRES_USER: hoge-user 
+    POSTGRES_PASSWORD: hoge-pass
+    POSTGRES_DB: hoge-db
+    POSTGRES_INITDB_ARGS: --encoding=UTF-8
+    TZ: Asia/Tokyo
+  volumes:
+    - type: bind
+      source: ${PWD}/sql/schema.sql
+      target: /docker-entrypoint-initdb.d/schema.sql
+
+services:
+  db:
+    <<: *db-template
+
+  db-2nd:
+    <<: *db-template
+    command: -p 5433
+    ports:
+      - 5433:5433
+
+  pgweb:
+    image: sosedoff/pgweb:0.11.8
+    environment:
+      DATABASE_URL: postgres://hoge-user:hoge-pass@db:5432/hoge-db?sslmode=disable
+    ports:
+      - 8081:8081
