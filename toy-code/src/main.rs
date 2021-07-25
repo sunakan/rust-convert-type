@@ -1,5 +1,47 @@
-// host=host1,host2,host3 port=1234,,5678 user=postgres target_session_attrs=read-write
+#[derive(Debug)]
+enum ProcessAError {
+    DBError(DatabaseError),
+}
+
+#[derive(Debug)]
+enum DatabaseError {
+    ConnectionError(String),
+}
+
 fn main() {
+    println!("helloWorld");
+    let err = process_a();
+    println!("----");
+    println!("{:?}", err);
+    println!("----");
+
+    //non_orm();
+}
+
+// Fromトレイトを使った型変換(末尾?で自動的に変換される)
+impl From<DatabaseError> for ProcessAError {
+    fn from(from: DatabaseError) -> ProcessAError {
+        match from {
+            DatabaseError::ConnectionError(_) => ProcessAError::DBError(from),
+        }
+    }
+}
+fn process_a() -> Result<(), ProcessAError> {
+    fail()?;
+    Ok(())
+}
+fn fail() -> Result<(), DatabaseError> {
+    Err(DatabaseError::ConnectionError("Hello".to_string()))
+}
+
+
+
+
+
+// ORMなし
+// enumとかは使ってない
+// host=host1,host2,host3 port=1234,,5678 user=postgres target_session_attrs=read-write
+fn non_orm() {
     let params = "host=localhost,localhost port=5432,5433 user=hoge-user password=hoge-pass dbname=hoge-db connect_timeout=10";
     let tls_mode = postgres::NoTls;
     let mut client = postgres::Client::connect(params, tls_mode);
